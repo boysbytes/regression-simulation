@@ -119,6 +119,14 @@ select {
   box-shadow: var(--shadow-light);
 }
 
+.footer-note {
+  text-align: center;
+  font-size: 0.85em;
+  margin-top: 12px;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
 .prediction-input {
   display: flex;
   gap: 10px;
@@ -261,7 +269,14 @@ select {
       In linear regression, points have continuous y values and the line shows the best fit.<br />
       Try different datasets and models to see how they compare!
     </div>
+
+      <footer class="footer-note">
+      <a href="https://github.com/boysbytes/regression-simulation" target=_blank>https://github.com/boysbytes/regression-simulation</a>
+    </footer>
+
   </div>
+  
+  
 
   <script>
     let scatterChart;
