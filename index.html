@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Regression Simulation</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+  <style>
+:root {
+  --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+  --background-light: #f7f7fb;
+  --surface-color: #fff;
+  --primary-color: #2563eb;
+  --control-hover: #1743a2;
+  --text-color: #313164;
+  --text-muted: #555;
+  --border-radius: 8px;
+  --shadow-light: 0 2px 16px rgba(0,0,0,0.07);
+  --card-background: #f9fafb;
+  --chart-background: #f4f7fb;
+}
+
+body {
+  background: var(--background-light);
+  font-family: var(--font-family);
+  margin: 0;
+  padding: 0;
+  color: var(--text-color);
+}
+
+.container {
+  max-width: 900px;
+  margin: 40px auto;
+  background: var(--surface-color);
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-light);
+  padding-bottom: 32px;
+}
+
+.header {
+  background: var(--chart-background);
+  border-radius: var(--border-radius) var(--border-radius) 0 0;
+  padding: 28px 32px 18px;
+  border-bottom: 1px solid #d2e3f5;
+}
+.header h1 {
+  margin: 0 0 8px;
+  font-size: 2rem;
+  color: var(--primary-color);
+  font-weight: 600;
+}
+.header p {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 1.08rem;
+}
+
+.controls {
+  padding: 24px 32px 10px;
+}
+
+.control-step {
+  margin-bottom: 20px;
+}
+
+.control-step h3 {
+  margin: 0 0 8px;
+  color: var(--primary-color);
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.refresh-wrapper {
+  display: inline-flex;
+  align-items: center;
+}
+
+.refresh-button {
+  background: none;
+  border: none;
+  margin-left: 8px;
+  font-size: 1.25rem;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--primary-color);
+  transition: color 0.2s;
+}
+
+.refresh-button:hover {
+  color: var(--control-hover);
+}
+
+select {
+  background: var(--primary-color);
+  color: #fff;
+  border: none;
+  border-radius: var(--border-radius);
+  padding: 10px 18px;
+  font-size: 1rem;
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(37,99,235,0.05);
+  appearance: none;
+  padding-right: 40px;
+  min-width: 200px;
+  background-image: url('data:image/svg+xml;charset=US-ASCII,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 4 5"><path fill="white" d="M2 0L0 2h4zM0 3l2 2 2-2z"/></svg>');
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 12px;
+}
+
+.chart-section {
+  padding: 0 32px;
+}
+.chart-card {
+  background: var(--chart-background);
+  border-radius: var(--border-radius);
+  padding: 24px 18px 12px;
+  margin: 12px 0 18px;
+  box-shadow: var(--shadow-light);
+}
+
+.prediction-input {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 15px;
+}
+.prediction-input input {
+  padding: 8px 12px;
+  border: 2px solid #e5e7eb;
+  border-radius: var(--border-radius);
+  font-size: 1rem;
+  width: 100px;
+}
+.prediction-input button {
+  background: var(--primary-color);
+  color: #fff;
+  border: none;
+  border-radius: var(--border-radius);
+  padding: 9px 18px;
+  font-size: 1rem;
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(37,99,235,0.05);
+  transition: background 0.2s;
+}
+.prediction-input button:hover {
+  background: var(--control-hover);
+}
+.prediction-result {
+  background: #f0f9ff;
+  padding: 15px;
+  border-radius: var(--border-radius);
+  margin-top: 10px;
+  border-left: 4px solid var(--primary-color);
+}
+
+.formula-card,
+.explanation-card {
+  background: var(--card-background);
+  border-left: 4px solid var(--primary-color);
+  border-radius: var(--border-radius);
+  padding: 16px 22px;
+  margin: 20px 32px 0;
+  font-size: 1.08rem;
+  box-shadow: var(--shadow-light);
+}
+.formula-card strong,
+.explanation-card strong {
+  color: var(--primary-color);
+}
+
+@media (max-width: 600px) {
+  .container {
+    padding-bottom: 16px;
+  }
+  .header,
+  .controls,
+  .chart-section,
+  .formula-card,
+  .explanation-card {
+    padding: 0 10px !important;
+  }
+  .chart-card {
+    padding: 10px;
+  }
+  .prediction-input {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  select {
+    width: 100%;
+  }
+}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Regression Simulation</h1>
+      <p>
+        Explore how logistic and linear regression fit data and make predictions.<br />
+        Select different datasets and models to see how they compare!
+      </p>
+    </div>
+
+    <div class="controls">
+      <div class="control-step">
+        <h3>Step 1: Select Dataset</h3>
+        <div class="refresh-wrapper">
+          <select id="scenarioSelect">
+            <option value="random">Random Data</option>
+            <option value="email">Email Spam Detection</option>
+            <option value="medical">Medical Diagnosis</option>
+            <option value="height">Height vs Weight</option>
+            <option value="temperature">Temperature Conversion</option>
+          </select>
+          <button id="refreshBtn" class="refresh-button" title="Refresh dataset">⟳</button>
+        </div>
+      </div>
+
+      <div class="control-step">
+        <h3>Step 2: Select Regression Model</h3>
+        <select id="modelSelect">
+          <option value="logistic">Logistic Regression</option>
+          <option value="linear">Linear Regression</option>
+        </select>
+      </div>
+
+      <!-- Step 3 now styled like Steps 1 and 2 -->
+      <div class="control-step">
+        <h3>Step 3: Make a Prediction</h3>
+        <div class="prediction-input">
+          <label>Enter a value for x:</label>
+          <input type="number" id="predictInput" placeholder="5.0" step="0.1" />
+          <button id="predictBtn">Predict</button>
+        </div>
+        <div id="predictionResult" class="prediction-result" style="display: none;">
+          <strong>Prediction:</strong> <span id="predictionValue"></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="chart-section">
+      <div class="chart-card">
+        <canvas id="scatterChart" width="700" height="360"></canvas>
+      </div>
+    </div>
+
+    <div class="formula-card" id="formula">
+      <strong>Logistic Regression Formula:</strong><br />
+      Probability = 1 / (1 + e<sup>-(a + bx)</sup>)<br />
+      <span style="font-size: 0.96em; color: #555;">
+        (where “a” and “b” are learned from the data, and “x” is the feature)
+      </span>
+    </div>
+
+    <div class="explanation-card" id="explanation">
+      <strong>How this works:</strong><br />
+      Each dot is a data point.<br />
+      In logistic regression, points are at y=0 or 1 and the curve shows probability of class 1.<br />
+      In linear regression, points have continuous y values and the line shows the best fit.<br />
+      Try different datasets and models to see how they compare!
+    </div>
+  </div>
+
+  <script>
+    let scatterChart;
+    let dataPoints = [];
+    let model = 'logistic';
+    let scenario = 'random';
+    let fittedA = 0, fittedB = 0;
+
+    const scenarios = {
+      random:      { name: 'Random Data',            xLabel: 'Feature (x)',               yLabel: 'Output (y)' },
+      email:       { name: 'Email Spam Detection',   xLabel: 'Suspicious Words',         yLabel: 'Is Spam (0=No, 1=Yes)' },
+      medical:     { name: 'Medical Diagnosis',      xLabel: 'Symptom Score',           yLabel: 'Has Disease (0=No, 1=Yes)' },
+      height:      { name: 'Height vs Weight',       xLabel: 'Height (inches)',         yLabel: 'Weight (lbs)' },
+      temperature: { name: 'Temperature Conversion', xLabel: 'Celsius',                 yLabel: 'Fahrenheit' }
+    };
+
+    function sigmoid(z) {
+      return 1 / (1 + Math.exp(-z));
+    }
+
+    function generateScenarioData() {
+      dataPoints = [];
+
+      // 1) Classification datasets
+      if (scenario === 'email' || scenario === 'medical') {
+        const a = scenario === 'email' ? -2 : -1.5;
+        const b = Math.abs((Math.random() - 0.5) * 4) + (scenario === 'email' ? 1 : 0.5);
+        for (let i = 0; i < 50; i++) {
+          const x = Math.random() * 10;
+          const prob = sigmoid(a + b * x);
+          const y = Math.random() < prob ? 1 : 0;
+          dataPoints.push({ x, y });
+        }
+        return;
+      }
+
+      // 2) Random logistic
+      if (model === 'logistic') {
+        const a = (Math.random() - 0.5) * 4;
+        const b = (Math.random() - 0.5) * 4;
+        for (let i = 0; i < 50; i++) {
+          const x = Math.random() * 10;
+          const prob = sigmoid(a + b * x);
+          const y = Math.random() < prob ? 1 : 0;
+          dataPoints.push({ x, y });
+        }
+        return;
+      }
+
+      // 3) Height vs Weight (linear)
+      if (scenario === 'height') {
+        const a = -150, b = 5;
+        for (let i = 0; i < 50; i++) {
+          const x = 60 + Math.random() * 20;
+          const noise = (Math.random() - 0.5) * 30;
+          dataPoints.push({ x, y: a + b * x + noise });
+        }
+        return;
+      }
+
+      // 4) Temperature Conversion (linear)
+      if (scenario === 'temperature') {
+        const a = 32, b = 1.8;
+        for (let i = 0; i < 50; i++) {
+          const x = Math.random() * 50;
+          const noise = (Math.random() - 0.5) * 2;
+          dataPoints.push({ x, y: a + b * x + noise });
+        }
+        return;
+      }
+
+      // 5) Random Data + Linear (Option 1: shift intercept upward)
+      const slope = (Math.random() - 0.5) * 3;
+      // noise ±1.5, x ∈ [0,10] → worst slope*x ±15, so intercept ≥ 16.5 ensures y≥0
+      const intercept = 16.5 + Math.random() * 5;
+      for (let i = 0; i < 50; i++) {
+        const x = Math.random() * 10;
+        const noise = (Math.random() - 0.5) * 3;
+        const y = intercept + slope * x + noise;
+        dataPoints.push({ x, y });
+      }
+    }
+
+    function fitLogistic() {
+      let fitA = 0, fitB = 0, lr = 0.05;
+      for (let epoch = 0; epoch < 300; epoch++) {
+        let gradA = 0, gradB = 0;
+        for (const p of dataPoints) {
+          const pred = sigmoid(fitA + fitB * p.x);
+          gradA += pred - p.y;
+          gradB += (pred - p.y) * p.x;
+        }
+        fitA -= lr * gradA / dataPoints.length;
+        fitB -= lr * gradB / dataPoints.length;
+      }
+      return { fitA, fitB };
+    }
+
+    function fitLinear() {
+      const n = dataPoints.length;
+      let sumX = 0, sumY = 0, sumXY = 0, sumXX = 0;
+      for (const p of dataPoints) {
+        sumX += p.x; sumY += p.y;
+        sumXY += p.x * p.y; sumXX += p.x * p.x;
+      }
+      const denom = n * sumXX - sumX * sumX;
+      if (!denom) return { fitA: 0, fitB: 0 };
+      const fitB = (n * sumXY - sumX * sumY) / denom;
+      const fitA = (sumY - fitB * sumX) / n;
+      return { fitA, fitB };
+    }
+
+    function drawChart() {
+      const info = scenarios[scenario];
+      let datasets = [];
+
+      if (model === 'logistic') {
+        const { fitA, fitB } = fitLogistic();
+        fittedA = fitA; fittedB = fitB;
+        const xMin = Math.min(...dataPoints.map(p => p.x));
+        const xMax = Math.max(...dataPoints.map(p => p.x));
+        datasets = [
+          { label: 'Class 0', data: dataPoints.filter(p => p.y === 0), backgroundColor: 'rgba(37,99,235,0.75)', pointRadius: 7 },
+          { label: 'Class 1', data: dataPoints.filter(p => p.y === 1), backgroundColor: 'rgba(239,68,68,0.75)', pointRadius: 7 },
+          {
+            label: 'Logistic Curve', type: 'line',
+            data: Array.from({ length: 101 }, (_, i) => {
+              const x = xMin + (xMax - xMin) * i / 100;
+              return { x, y: sigmoid(fitA + fitB * x) };
+            }),
+            borderColor: 'rgba(37,99,235,1)', pointRadius: 0, borderWidth: 3, fill: false, tension: 0.4
+          }
+        ];
+        document.getElementById('formula').innerHTML =
+          `<strong>Logistic Regression Formula:</strong><br/>
+           Probability = 1 / (1 + e<sup>-(a + bx)</sup>)<br/>
+           <span style="font-size:0.96em;color:#555;">
+             (a=${fitA.toFixed(2)}, b=${fitB.toFixed(2)})
+           </span>`;
+        document.getElementById('explanation').innerHTML =
+          `<strong>How this works:</strong><br/>
+           Each dot is a data point (${info.name}).<br/>
+           The S-shaped curve shows class probability.`;
+      } else {
+        const { fitA, fitB } = fitLinear();
+        fittedA = fitA; fittedB = fitB;
+        const xMin = Math.min(...dataPoints.map(p => p.x));
+        const xMax = Math.max(...dataPoints.map(p => p.x));
+        datasets = [
+          { label: 'Data Points', data: dataPoints, backgroundColor: 'rgba(37,99,235,0.75)', pointRadius: 7 },
+          {
+            label: 'Linear Fit', type: 'line',
+            data: [
+              { x: xMin, y: fitA + fitB * xMin },
+              { x: xMax, y: fitA + fitB * xMax }
+            ],
+            borderColor: 'rgba(239,68,68,1)', pointRadius: 0, borderWidth: 3, fill: false, tension: 0
+          }
+        ];
+        document.getElementById('formula').innerHTML =
+          `<strong>Linear Regression Formula:</strong><br/>
+           y = a + bx<br/>
+           <span style="font-size:0.96em;color:#555;">
+             (a=${fitA.toFixed(2)}, b=${fitB.toFixed(2)})
+           </span>`;
+        document.getElementById('explanation').innerHTML =
+          `<strong>How this works:</strong><br/>
+           Each dot is a data point (${info.name}).<br/>
+           The straight line shows the best-fit relationship.`;
+      }
+
+      // floor y-axis at zero for linear
+      const yAxis = {
+        type: 'linear',
+        title: { display: true, text: info.yLabel, color: '#2563eb', font: { weight: 600, size: 16 } },
+        grid: { color: '#e5e7eb' },
+        min: model === 'logistic' ? -0.1 : 0,
+        max: model === 'logistic' ? 1.1 : undefined
+      };
+
+      if (scatterChart) scatterChart.destroy();
+      scatterChart = new Chart(document.getElementById('scatterChart'), {
+        type: 'scatter',
+        data: { datasets },
+        options: {
+          plugins: { legend: { display: true } },
+          scales: {
+            x: {
+              type: 'linear',
+              title: { display: true, text: info.xLabel, color: '#2563eb', font: { weight: 600, size: 16 } },
+              grid: { color: '#e5e7eb' }
+            },
+            y: yAxis
+          }
+        }
+      });
+    }
+
+    // Event handlers
+    document.getElementById('modelSelect').addEventListener('change', () => {
+      model = document.getElementById('modelSelect').value;
+      generateData();
+    });
+    document.getElementById('scenarioSelect').addEventListener('change', () => {
+      scenario = document.getElementById('scenarioSelect').value;
+      generateData();
+    });
+    document.getElementById('refreshBtn').addEventListener('click', generateData);
+    document.getElementById('predictBtn').addEventListener('click', makePrediction);
+
+    function generateData() {
+      generateScenarioData();
+      drawChart();
+    }
+
+    function makePrediction() {
+      const x = parseFloat(document.getElementById('predictInput').value);
+      if (isNaN(x)) {
+        alert('Please enter a valid number');
+        return;
+      }
+      let text;
+      if (model === 'logistic') {
+        const p = sigmoid(fittedA + fittedB * x);
+        text = `Probability = ${(p * 100).toFixed(1)}% (${p > 0.5 ? 'Positive' : 'Negative'})`;
+      } else {
+        text = `y = ${(fittedA + fittedB * x).toFixed(2)}`;
+      }
+      document.getElementById('predictionValue').textContent = text;
+      document.getElementById('predictionResult').style.display = 'block';
+    }
+
+    function initializeApp() {
+      if (typeof Chart !== 'undefined') {
+        generateData();
+      } else {
+        setTimeout(initializeApp, 100);
+      }
+    }
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initializeApp);
+    } else {
+      initializeApp();
+    }
+  </script>
+</body>
+</html>
