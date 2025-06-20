@@ -258,7 +258,7 @@ select {
       <strong>Logistic Regression Formula:</strong><br />
       Probability = 1 / (1 + e<sup>-(a + bx)</sup>)<br />
       <span style="font-size: 0.96em; color: #555;">
-        (where “a” and “b” are learned from the data, and “x” is the feature)
+        (where "a" and "b" are learned from the data, and "x" is the feature)
       </span>
     </div>
 
@@ -289,7 +289,7 @@ select {
       random:      { name: 'Random Data',            xLabel: 'Feature (x)',               yLabel: 'Output (y)' },
       email:       { name: 'Email Spam Detection',   xLabel: 'Suspicious Words',         yLabel: 'Is Spam (0=No, 1=Yes)' },
       medical:     { name: 'Medical Diagnosis',      xLabel: 'Symptom Score',           yLabel: 'Has Disease (0=No, 1=Yes)' },
-      height:      { name: 'Height vs Weight',       xLabel: 'Height (inches)',         yLabel: 'Weight (lbs)' },
+      height:      { name: 'Height vs Weight',       xLabel: 'Height (cm)',             yLabel: 'Weight (kg)' },
       temperature: { name: 'Temperature Conversion', xLabel: 'Celsius',                 yLabel: 'Fahrenheit' }
     };
 
@@ -326,12 +326,12 @@ select {
         return;
       }
 
-      // 3) Height vs Weight (linear)
+      // 3) Height vs Weight (metric units)
       if (scenario === 'height') {
-        const a = -150, b = 5;
+        const a = -100, b = 1.2;  // Adjusted for metric: weight(kg) = -100 + 1.2 * height(cm)
         for (let i = 0; i < 50; i++) {
-          const x = 60 + Math.random() * 20;
-          const noise = (Math.random() - 0.5) * 30;
+          const x = 150 + Math.random() * 50;  // Height range: 150-200 cm
+          const noise = (Math.random() - 0.5) * 15;  // ±7.5 kg noise
           dataPoints.push({ x, y: a + b * x + noise });
         }
         return;
